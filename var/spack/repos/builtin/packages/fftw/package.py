@@ -245,7 +245,7 @@ class Fftw(FftwBase):
 
     patch("pfft-3.3.9.patch", when="@3.3.9:+pfft_patches", level=0)
     patch("https://github.com/FFTW/fftw3/commit/f69fef7aa546d4477a2a3fd7f13fa8b2f6c54af7.patch?full_index=1",
-          sha256="7973a00b9cf1ddfa68a7352df969137baf52a36f850c00f308be704b16a19930",
+          sha256="872cff9a7d346e91a108ffd3540bfcebeb8cf86c7f40f6b31fd07a80267cbf53",
           when="@3.3.7:", level=0)
     patch("pfft-3.3.5.patch", when="@3.3.5:3.3.8+pfft_patches", level=0)
     patch("pfft-3.3.4.patch", when="@3.3.4+pfft_patches", level=0)
