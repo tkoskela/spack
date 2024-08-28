@@ -14,6 +14,7 @@ import spack
 import spack.cmd.external
 import spack.detection
 import spack.detection.path
+import spack.repo
 from spack.main import SpackCommand
 from spack.spec import Spec
 
@@ -55,7 +56,9 @@ def test_find_external_two_instances_same_package(mock_executable):
     search_paths = [str(cmake1.parent.parent), str(cmake2.parent.parent)]
 
     finder = spack.detection.path.ExecutablesFinder()
-    detected_specs = finder.find(pkg_name="cmake", initial_guess=search_paths)
+    detected_specs = finder.find(
+        pkg_name="cmake", initial_guess=search_paths, repository=spack.repo.PATH
+    )
 
     assert len(detected_specs) == 2
     spec_to_path = {e.spec: e.prefix for e in detected_specs}
@@ -69,8 +72,12 @@ def test_find_external_two_instances_same_package(mock_executable):
 
 def test_find_external_update_config(mutable_config):
     entries = [
-        spack.detection.DetectedPackage(Spec.from_detection("cmake@1.foo"), "/x/y1/"),
-        spack.detection.DetectedPackage(Spec.from_detection("cmake@3.17.2"), "/x/y2/"),
+        spack.detection.DetectedPackage(
+            Spec.from_detection("cmake@1.foo", external_path="/x/y1/"), "/x/y1/"
+        ),
+        spack.detection.DetectedPackage(
+            Spec.from_detection("cmake@3.17.2", external_path="/x/y2/"), "/x/y2/"
+        ),
     ]
     pkg_to_entries = {"cmake": entries}
 
@@ -97,7 +104,7 @@ external = SpackCommand("external")
 
 # TODO: this test should be made to work, but in the meantime it is
 # causing intermittent (spurious) CI failures on all PRs
-@pytest.mark.skipif(sys.platform == "win32", reason="Test fails intermittently on Windows")
+@pytest.mark.not_on_windows("Test fails intermittently on Windows")
 def test_find_external_cmd_not_buildable(mutable_config, working_env, mock_executable):
     """When the user invokes 'spack external find --not-buildable', the config
     for any package where Spack finds an external version should be marked as
@@ -114,11 +121,31 @@ def test_find_external_cmd_not_buildable(mutable_config, working_env, mock_execu
 @pytest.mark.parametrize(
     "names,tags,exclude,expected",
     [
-        # find --all
-        (None, ["detectable"], [], ["builtin.mock.find-externals1"]),
+        # find -all
+        (
+            None,
+            ["detectable"],
+            [],
+            [
+                "builtin.mock.find-externals1",
+                "builtin.mock.gcc",
+                "builtin.mock.llvm",
+                "builtin.mock.intel-oneapi-compilers",
+            ],
+        ),
         # find --all --exclude find-externals1
-        (None, ["detectable"], ["builtin.mock.find-externals1"], []),
-        (None, ["detectable"], ["find-externals1"], []),
+        (
+            None,
+            ["detectable"],
+            ["builtin.mock.find-externals1"],
+            ["builtin.mock.gcc", "builtin.mock.llvm", "builtin.mock.intel-oneapi-compilers"],
+        ),
+        (
+            None,
+            ["detectable"],
+            ["find-externals1"],
+            ["builtin.mock.gcc", "builtin.mock.llvm", "builtin.mock.intel-oneapi-compilers"],
+        ),
         # find cmake (and cmake is not detectable)
         (["cmake"], ["detectable"], [], []),
     ],
@@ -198,10 +225,8 @@ def test_find_external_manifest_failure(mutable_config, mutable_mock_repo, tmpdi
     assert "Skipping manifest and continuing" in output
 
 
-def test_find_external_merge(mutable_config, mutable_mock_repo):
-    """Check that 'spack find external' doesn't overwrite an existing spec
-    entry in packages.yaml.
-    """
+def test_find_external_merge(mutable_config, mutable_mock_repo, tmp_path):
+    """Checks that 'spack find external' doesn't overwrite an existing spec in packages.yaml."""
     pkgs_cfg_init = {
         "find-externals1": {
             "externals": [{"spec": "find-externals1@1.1", "prefix": "/preexisting-prefix/"}],
@@ -211,8 +236,12 @@ def test_find_external_merge(mutable_config, mutable_mock_repo):
 
     mutable_config.update_config("packages", pkgs_cfg_init)
     entries = [
-        spack.detection.DetectedPackage(Spec.from_detection("find-externals1@1.1"), "/x/y1/"),
-        spack.detection.DetectedPackage(Spec.from_detection("find-externals1@1.2"), "/x/y2/"),
+        spack.detection.DetectedPackage(
+            Spec.from_detection("find-externals1@1.1", external_path="/x/y1/"), "/x/y1/"
+        ),
+        spack.detection.DetectedPackage(
+            Spec.from_detection("find-externals1@1.2", external_path="/x/y2/"), "/x/y2/"
+        ),
     ]
     pkg_to_entries = {"find-externals1": entries}
     scope = spack.config.default_modify_scope("packages")
@@ -243,7 +272,9 @@ def test_overriding_prefix(mock_executable, mutable_config, monkeypatch):
     monkeypatch.setattr(gcc_cls, "determine_variants", _determine_variants)
 
     finder = spack.detection.path.ExecutablesFinder()
-    detected_specs = finder.find(pkg_name="gcc", initial_guess=[str(search_dir)])
+    detected_specs = finder.find(
+        pkg_name="gcc", initial_guess=[str(search_dir)], repository=spack.repo.PATH
+    )
 
     assert len(detected_specs) == 1
 

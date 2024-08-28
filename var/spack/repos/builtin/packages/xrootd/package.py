@@ -11,9 +11,12 @@ class Xrootd(CMakePackage):
     """The XROOTD project aims at giving high performance, scalable fault
     tolerant access to data repositories of many kinds."""
 
-    homepage = "https://xrootd.slac.stanford.edu"
-    url = "https://xrootd.slac.stanford.edu/download/v5.5.1/xrootd-5.5.1.tar.gz"
-    list_url = "https://xrootd.slac.stanford.edu/dload.html"
+    homepage = "https://xrootd.web.cern.ch"
+    urls = [
+        "https://xrootd.web.cern.ch/download/v5.7.0/xrootd-5.7.0.tar.gz",
+        "https://github.com/xrootd/xrootd/releases/download/v5.7.0/xrootd-5.7.0.tar.gz",
+    ]
+    list_url = "https://xrootd.web.cern.ch/dload.html"
     git = "https://github.com/xrootd/xrootd.git"
 
     maintainers("gartung", "greenc-FNAL", "marcmengel", "vitodb", "wdconinc")
@@ -63,6 +66,9 @@ class Xrootd(CMakePackage):
     version("4.4.1", sha256="3c295dbf750de086c04befc0d3c7045fd3976611c2e75987c1477baca37eb549")
     version("4.4.0", sha256="f066e7488390c0bc50938d23f6582fb154466204209ca92681f0aa06340e77c8")
     version("4.3.0", sha256="d34865772d975b5d58ad80bb05312bf49aaf124d5431e54dc8618c05a0870e3c")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     variant("davix", default=True, description="Build with Davix")
     variant(

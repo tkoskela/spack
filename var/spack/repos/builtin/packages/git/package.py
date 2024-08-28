@@ -16,7 +16,7 @@ class Git(AutotoolsPackage):
     projects with speed and efficiency.
     """
 
-    homepage = "http://git-scm.com"
+    homepage = "https://git-scm.com"
     url = "https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.12.0.tar.gz"
     maintainers("jennfshr")
 
@@ -95,6 +95,8 @@ class Git(AutotoolsPackage):
         sha256="2f9aa93c548941cc5aff641cedc24add15b912ad8c9b36ff5a41b1a9dcad783e",
         deprecated=True,
     )
+
+    depends_on("c", type="build")  # generated
 
     for _version, _sha256_manpage in {
         "2.45.2": "48c1e2e3ecbb2ce9faa020a19fcdbc6ce64ea25692111b5930686bc0bb4f0e7f",

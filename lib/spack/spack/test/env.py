@@ -573,9 +573,6 @@ def test_conflicts_with_packages_that_are_not_dependencies(
     """Tests that we cannot concretize two specs together, if one conflicts with the other,
     even though they don't have a dependency relation.
     """
-    if spack.config.get("config:concretizer") == "original":
-        pytest.xfail("Known failure of the original concretizer")
-
     manifest = tmp_path / "spack.yaml"
     manifest.write_text(
         f"""\
@@ -597,7 +594,6 @@ spack:
 
 
 @pytest.mark.regression("39455")
-@pytest.mark.only_clingo("Known failure of the original concretizer")
 @pytest.mark.parametrize(
     "possible_mpi_spec,unify", [("mpich", False), ("mpich", True), ("zmpi", False), ("zmpi", True)]
 )
@@ -698,7 +694,6 @@ def test_removing_spec_from_manifest_with_exact_duplicates(
 
 
 @pytest.mark.regression("35298")
-@pytest.mark.only_clingo("Propagation not supported in the original concretizer")
 def test_variant_propagation_with_unify_false(tmp_path, mock_packages, config):
     """Spack distributes concretizations to different processes, when unify:false is selected and
     the number of roots is 2 or more. When that happens, the specs to be concretized need to be
@@ -814,7 +809,6 @@ def test_deconcretize_then_concretize_does_not_error(mutable_mock_env_path, mock
 
 
 @pytest.mark.regression("44216")
-@pytest.mark.only_clingo()
 def test_root_version_weights_for_old_versions(mutable_mock_env_path, mock_packages):
     """Tests that, when we select two old versions of root specs that have the same version
     optimization penalty, both are considered.
@@ -841,3 +835,28 @@ def test_root_version_weights_for_old_versions(mutable_mock_env_path, mock_packa
 
     assert bowtie.satisfies("@=1.3.0")
     assert gcc.satisfies("@=1.0")
+
+
+def test_env_view_on_empty_dir_is_fine(tmp_path, config, mock_packages, temporary_store):
+    """Tests that creating a view pointing to an empty dir is not an error."""
+    view_dir = tmp_path / "view"
+    view_dir.mkdir()
+    env = ev.create_in_dir(tmp_path, with_view="view")
+    env.add("mpileaks")
+    env.concretize()
+    env.install_all(fake=True)
+    env.regenerate_views()
+    assert view_dir.is_symlink()
+
+
+def test_env_view_on_non_empty_dir_errors(tmp_path, config, mock_packages, temporary_store):
+    """Tests that creating a view pointing to a non-empty dir errors."""
+    view_dir = tmp_path / "view"
+    view_dir.mkdir()
+    (view_dir / "file").write_text("")
+    env = ev.create_in_dir(tmp_path, with_view="view")
+    env.add("mpileaks")
+    env.concretize()
+    env.install_all(fake=True)
+    with pytest.raises(ev.SpackEnvironmentError, match="because it is a non-empty dir"):
+        env.regenerate_views()

@@ -45,7 +45,9 @@ class DetectedPackage(NamedTuple):
     def restore(
         spec_str: str, prefix: str, extra_attributes: Optional[Dict[str, str]]
     ) -> "DetectedPackage":
-        spec = spack.spec.Spec.from_detection(spec_str=spec_str, extra_attributes=extra_attributes)
+        spec = spack.spec.Spec.from_detection(
+            spec_str=spec_str, external_path=prefix, extra_attributes=extra_attributes
+        )
         return DetectedPackage(spec=spec, prefix=prefix)
 
 
@@ -136,10 +138,10 @@ def path_to_dict(search_paths: List[str]):
     # entry overrides later entries
     for search_path in reversed(search_paths):
         try:
-            for lib in os.listdir(search_path):
-                lib_path = os.path.join(search_path, lib)
-                if llnl.util.filesystem.is_readable_file(lib_path):
-                    path_to_lib[lib_path] = lib
+            with os.scandir(search_path) as entries:
+                path_to_lib.update(
+                    {entry.path: entry.name for entry in entries if entry.is_file()}
+                )
         except OSError as e:
             msg = f"cannot scan '{search_path}' for external software: {str(e)}"
             llnl.util.tty.debug(msg)
@@ -239,7 +241,7 @@ def update_configuration(
         external_entries = pkg_config.get("externals", [])
         assert not isinstance(external_entries, bool), "unexpected value for external entry"
 
-        all_new_specs.extend([spack.spec.Spec(x["spec"]) for x in external_entries])
+        all_new_specs.extend([x.spec for x in new_entries])
         if buildable is False:
             pkg_config["buildable"] = False
         pkg_to_cfg[package_name] = pkg_config
