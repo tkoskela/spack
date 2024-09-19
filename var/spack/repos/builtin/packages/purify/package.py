@@ -71,13 +71,21 @@ class Purify(CMakePackage):
         ]
         return args
 
+    def setup_run_environment(self, env):
+        if "+tests" in self.spec:
+            env.prepend_path("PATH", self.spec.prefix.tests)
+        if "+examples" in self.spec:
+            env.prepend_path("PATH", join_path(self.spec.prefix, "examples"))
+        if "+benchmarks" in self.spec:
+            env.prepend_path("PATH", join_path(self.spec.prefix, "benchmarks"))
+    
     def install(self, spec, prefix):
         with working_dir(self.build_directory):
             make("install")
             if "+tests" in spec:
                 install_tree("cpp/tests", spec.prefix.tests)
                 install_tree("data", join_path(spec.prefix, "data"))
-            if "+benchmarks" in spec:
-                install_tree("cpp/benchmarks", join_path(spec.prefix, "benchmarks"))
             if "+examples" in spec:
+                install_tree("cpp/examples", join_path(spec.prefix, "examples"))
+            if "+benchmarks" in spec:
                 install_tree("cpp/benchmarks", join_path(spec.prefix, "benchmarks"))
