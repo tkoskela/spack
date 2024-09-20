@@ -25,7 +25,6 @@ class Purify(CMakePackage):
     variant("tests", default=True, description="Build tests")
     variant("openmp", default=True, description="Enable multithreading with OpenMP")
     variant("mpi", default=True, description="Enable parallelisation with MPI")
-    variant("logging", default=True, description="Enable logging")
     variant("examples", default=False, description="Build examples")
     variant("benchmarks", default=False, description="Build benchmarks")
     variant("docs", default=False, description="Enable multithreading with OpenMP")
@@ -52,7 +51,6 @@ class Purify(CMakePackage):
     depends_on("doxygen@1.9", when="+docs")
     depends_on("casacore", when="+casa")
     depends_on("arrayfire", when="+af")
-    depends_on("spdlog@1.12", when="+logging")
 
     def cmake_args(self):
         args = [
@@ -64,7 +62,6 @@ class Purify(CMakePackage):
             self.define_from_variant("dompi", "mpi"),
             self.define_from_variant("onnxrt", "onnxrt"),
             self.define_from_variant("coverage", "coverage"),
-            self.define_from_variant("logging", "logging"),
             self.define_from_variant("doaf", "af"),
             self.define_from_variant("docasa", "casa"),
             self.define_from_variant("docimg", "cimg")
