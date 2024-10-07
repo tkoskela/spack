@@ -21,35 +21,34 @@ class Sopt(CMakePackage):
 
     version("4.2.0", sha256="25e579722f8e049d37c9155affa57ec2f38a2f8414c9cf430da2b7bafc86907b")
 
-    variant("tests", default=True, description="Build tests")
-    variant("examples", default=True, description="Build examples")
+    variant("tests", default=False, description="Build tests")
+    variant("examples", default=False, description="Build examples")
     variant("benchmarks", default=False, description="Build benchmarks")
     variant("openmp", default=False, description="Enable multithreading with OpenMP")
     variant("mpi", default=False, description="Enable parallelisation with MPI")
     variant("docs", default=False, description="Enable multithreading with OpenMP")
     variant("coverage", default=False, description="")
-    variant("cppflow", default=False, description="Build with Tensorflow support using cppflow")
     variant("onnxrt", default=False, description="Build with Tensorflow support using onnx")
 
     depends_on("cmake@3")
     depends_on("eigen@3.4")
     depends_on("libtiff@4.5")
-    depends_on("catch2@3.4", when="+tests")
     depends_on("mpi", when="+mpi")
+    depends_on("catch2@3.4", when="+tests")
     depends_on("benchmark@1.8", when="+benchmarks")
     depends_on("onnx@1.16", when="+onnxrt")
     depends_on("doxygen@1.9", when="+docs")
 
     def cmake_args(self):
         args = [
-            self.define_from_variant("docs", "docs"),
-            self.define_from_variant("examples", "examples"),
             self.define_from_variant("tests", "tests"),
+            self.define_from_variant("examples", "examples"),
             self.define_from_variant("benchmarks", "benchmarks"),
             self.define_from_variant("openmp", "openmp"),
             self.define_from_variant("dompi", "mpi"),
-            self.define_from_variant("onnxrt", "onnxrt"),
+            self.define_from_variant("docs", "docs"),
             self.define_from_variant("coverage", "coverage"),
+            self.define_from_variant("onnxrt", "onnxrt"),
         ]
         return args
 
