@@ -5,10 +5,11 @@
 
 from spack.package import *
 
+
 class Purify(CMakePackage):
-    """PURIFY is an open-source collection of routines written in C++ available under the 
-    license below. It implements different tools and high-level to perform radio interferometric 
-    imaging, i.e. to recover images from the Fourier measurements taken by radio interferometric 
+    """PURIFY is an open-source collection of routines written in C++ available under the
+    license below. It implements different tools and high-level to perform radio interferometric
+    imaging, i.e. to recover images from the Fourier measurements taken by radio interferometric
     telescopes.
     """
 
@@ -27,7 +28,7 @@ class Purify(CMakePackage):
     variant("examples", default=False, description="Build examples")
     variant("benchmarks", default=False, description="Build benchmarks")
     variant("docs", default=False, description="Enable multithreading with OpenMP")
-    variant("coverage", default=False, description="")
+    variant("coverage", default=False, description="Enable code coverage")
     variant("af", default=False, description="Enable ArrayFire")
     variant("cimg", default=False, description="Enable Cimg")
     variant("casa", default=False, description="Enable Casacore")
@@ -41,8 +42,10 @@ class Purify(CMakePackage):
     depends_on("boost@1.82+system+filesystem")
     depends_on("cfitsio@4")
     depends_on("cubature@1")
-    depends_on("sopt~mpi", when="~mpi")
-    depends_on("sopt+mpi", when="+mpi")
+    depends_on("sopt~mpi~openmp", when="~mpi~openmp")
+    depends_on("sopt+mpi~openmp", when="+mpi~openmp")
+    depends_on("sopt~mpi+openmp", when="~mpi+openmp")
+    depends_on("sopt+mpi+openmp", when="+mpi+openmp")
     depends_on("catch2@3.4", when="+tests")
     depends_on("mpi", when="+mpi")
     depends_on("benchmark@=1.8.2~performance_counters", when="+benchmarks")
@@ -63,7 +66,7 @@ class Purify(CMakePackage):
             self.define_from_variant("coverage", "coverage"),
             self.define_from_variant("doaf", "af"),
             self.define_from_variant("docasa", "casa"),
-            self.define_from_variant("docimg", "cimg")
+            self.define_from_variant("docimg", "cimg"),
         ]
         return args
 
@@ -74,7 +77,7 @@ class Purify(CMakePackage):
             env.prepend_path("PATH", join_path(self.spec.prefix, "examples"))
         if "+benchmarks" in self.spec:
             env.prepend_path("PATH", join_path(self.spec.prefix, "benchmarks"))
-    
+
     def install(self, spec, prefix):
         with working_dir(self.build_directory):
             make("install")
