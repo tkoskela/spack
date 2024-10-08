@@ -28,17 +28,23 @@ class Sopt(CMakePackage):
     variant("openmp", default=False, description="Enable multithreading with OpenMP")
     variant("mpi", default=False, description="Enable parallelisation with MPI")
     variant("docs", default=False, description="Enable multithreading with OpenMP")
-    variant("coverage", default=False, description="")
+    variant("coverage", default=False, description="Enable code coverage")
     variant("onnxrt", default=False, description="Build with Tensorflow support using onnx")
 
     depends_on("cmake@3")
     depends_on("eigen@3.4")
-    depends_on("libtiff@4.5")
+    depends_on("libtiff@4")
     depends_on("mpi", when="+mpi")
-    depends_on("catch2@3.4", when="+tests")
-    depends_on("benchmark@1.8", when="+benchmarks")
-    depends_on("onnx@1.16", when="+onnxrt")
-    depends_on("doxygen@1.9", when="+docs")
+    depends_on("catch2@3.4:3", when="+tests")
+    depends_on("benchmark@1.8~performance_counters", when="+benchmarks")
+    depends_on("onnx@1.16:", when="+onnxrt")
+    depends_on("doxygen@1.8:1.12+graphviz", when="+docs")
+
+    patch(
+        "https://github.com/astro-informatics/sopt/commit/836171f32d39a3fbc1147d6c302a08a61f842fee.patch?full_index=1",
+        sha256="92727f67f67bc1dbf8fc7a893e5b099fc46526149d2cbcb6f9b10265bc8a5723",
+        when="@4.2.0",
+    )
 
     patch(
         "https://github.com/astro-informatics/sopt/commit/836171f32d39a3fbc1147d6c302a08a61f842fee.patch",
