@@ -5,6 +5,7 @@
 
 from spack.package import *
 
+
 class Cubature(CMakePackage):
     """multi-dimensional adaptive integration (cubature) in C"""
 
