@@ -20,6 +20,7 @@ class Purify(CMakePackage):
     maintainers("tkoskela", "mmcleod89", "20DM")
     license("GPL-2.0")
 
+    version("debug", branch="tk/mpi_operator_benchmark_strong_scaling")
     version("4.2.0", sha256="4d674007efc727628839fb6c8864e74f22adb39ee6405d3dab273f65b31b37e6")
 
     variant("tests", default=True, description="Build tests")
